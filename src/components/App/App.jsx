@@ -1,45 +1,44 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import ContactForm from '../ContactForm/ContactForm';
 import ContactList from '../ContactList/ContactList';
 import Filter from '../Filter/Filter';
 import styles from './App.module.css';
 
-class App extends Component {
-  state = {
-    contacts: [
+const App = () => {
+      const [contacts, setContacts] = useState([
       { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
       { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
       { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
       { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+    ]);
 
-  // metoda cyklu zycia do wczytywania kontaktw z LocalStorage po zamontowaniu komponentu
-  componentDidMount(){
-    const savedContacts = localStorage.getItem('contacts'); //pobiera dane z LS pod kluczem 'contacts'
+    const [filter, setFilter] = useState('');
+  
+
+   // Użycie useEffect do pobierania kontaktów z LocalStorage po zamontowaniu komponentu
+  useEffect(() => {
+    const savedContacts = localStorage.getItem('contacts');
     if (savedContacts) {
-      this.setState({ contacts: JSON.parse(savedContacts) }); // jesli w LS istnieje wpis pod kluczem 'contacts' zostanie on zwrocony jako string
+      setContacts(JSON.parse(savedContacts));
     }
-  }
+  }, []);
 
-  // metoda cyklu zycia do zapisywania kontaktow w LocalStorage po aktualizacji komponentu
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts !== this.state.contacts) { // Sprawdzamy, czy poprzednia lista kontaktów (prevState.contacts) różni się od obecnej (this.state.contacts).
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts)); // jesi lista kontaktow ulegnie zmianie (np. dodano lub usunięto kontakt), porownanie zwroci true i wykona sie kod z bloku if. localStorage.setItem('contacts', - zapisuje zaktualizowana liste kontaktow w LS. JSON.stringify(this.state.contacts) - konwertuje na format JSON, aby mozna bylo go przechowac w LS.
-    }
-  }
+   // Użycie useEffect do zapisywania kontaktów w LocalStorage po zmianie stanu kontaktów
+   useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
 
-  addContact = ({ name, number }) => {
+
+  const addContact = ({ name, number }) => {
     const contact = {
       id: nanoid(),
       name,
       number,
     };
 
-    const isExistingContact = this.state.contacts.some(
+    const isExistingContact = contacts.some(
       (c) => c.name.toLowerCase() === name.toLowerCase()
     );
 
@@ -48,46 +47,39 @@ class App extends Component {
       return;
     }
 
-    this.setState((prevState) => ({
-      contacts: [...prevState.contacts, contact],
-    }));
+    setContacts((prevContacts) => [...prevContacts, contact]);
   };
 
-  deleteContact = (id) => {
-    this.setState((prevState) => ({
-      contacts: prevState.contacts.filter((contact) => contact.id !== id),
-    }));
+  const deleteContact = (id) => {
+    setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
   };
 
-  handleFilterChange = (e) => {
-    this.setState({ filter: e.target.value });
+  const handleFilterChange = (e) => {
+    setFilter(e.target.value );
   };
 
-  getFilteredContacts = () => {
-    const { contacts, filter } = this.state;
+  const getFilteredContacts = () => {
     const normalizedFilter = filter.toLowerCase();
-
     return contacts.filter((contact) =>
       contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  render() {
-    const { filter } = this.state;
-    const filteredContacts = this.getFilteredContacts();
+  const filteredContacts = getFilteredContacts();
+
 
     return (
       <div className={styles.appContainer}>
         <h1>Phonebook</h1>
-        <ContactForm onSubmit={this.addContact} />
+        <ContactForm onSubmit={addContact} />
 
         <h2>Contacts</h2>
-        <Filter value={filter} onChange={this.handleFilterChange} />
-        <ContactList contacts={filteredContacts} onDeleteContact={this.deleteContact} />
+        <Filter value={filter} onChange={handleFilterChange} />
+        <ContactList contacts={filteredContacts} onDeleteContact={deleteContact} />
       </div>
     );
   }
-}
+
 
 export default App;
 

@@ -1,37 +1,49 @@
-import React, { Component } from 'react';
+import React, {  useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ContactForm.module.css';
 
-class ContactForm extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
+const ContactForm = ({ onSubmit }) => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
-  handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'name' && /\d/.test(value)) { // Jeśli pole 'name' zawiera cyfry, to ignoruj zmianę
-      alert('Please enter letters only in the Name field.');
-      return;
+    // Walidacja dla pola 'name'
+    if (name === 'name') {
+      setName(value);
     }
-    if (name === 'number' && /[a-zA-Z]/.test(value)) { // Jeśli pole 'number' zawiera litery, to ignoruj zmianę
-      alert('Please enter numbers only in the Number field.');
-      return;
+
+    // Walidacja dla pola 'number'
+    if (name === 'number') {
+     setNumber(value);
     }
-    this.setState({ [name]: value });
   };
 
-  handleSubmit = (e) => {
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    this.props.onSubmit(this.state);
-    this.setState({ name: '', number: '' });
-  };
+  if (/\d/.test(name)) {
+    alert('Please enter letters only in the Name field.');
+    return;
+  }
 
-  render() {
-    const { name, number } = this.state;
+  if (/[a-zA-Z]/.test(number)) {
+    alert('Please enter numbers only in the Number field.');
+    return;
+  }
+
+  // Zgłoszenie nowego kontaktu
+  onSubmit({ name, number });
+
+  // Resetowanie pól formularza
+  setName('');
+  setNumber('');
+};
+
+
     return (
-      <form onSubmit={this.handleSubmit} className={styles.form}>
+      <form onSubmit={handleSubmit} className={styles.form}>
         <label className={styles.label}>
           Name
           <input
@@ -42,7 +54,7 @@ class ContactForm extends Component {
             title="Name may contain only letters, apostrophe, dash and spaces."
             required
             value={name}
-            onChange={this.handleChange}
+            onChange={handleChange}
           />
         </label>
 
@@ -56,7 +68,7 @@ class ContactForm extends Component {
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
             value={number}
-            onChange={this.handleChange}
+            onChange={handleChange}
           />
         </label>
         <button type="submit" className={styles.button}>
@@ -65,7 +77,7 @@ class ContactForm extends Component {
       </form>
     );
   }
-}
+
 
 ContactForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
